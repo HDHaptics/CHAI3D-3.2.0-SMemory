@@ -42,6 +42,7 @@
 //==============================================================================
 
 //------------------------------------------------------------------------------
+#include "bridge/CBridge.h"
 #include "chai3d.h"
 //------------------------------------------------------------------------------
 #include <GLFW/glfw3.h>
@@ -222,6 +223,7 @@ ObjData inputData;
 ObjData *inputData2;
 HIPData *outputData;
 
+cBridge bridge;
 
 //==============================================================================
 /*
@@ -270,6 +272,10 @@ int main(int argc, char* argv[])
     // parse first arg to try and locate resources
     resourceRoot = string(argv[0]).substr(0,string(argv[0]).find_last_of("/\\")+1);
 
+	bridge.openFileMapping("objData");
+	bridge.mapViewOfFiles();
+	
+	/*
 	inFileMap = OpenFileMapping(FILE_MAP_ALL_ACCESS, false, "manager2chai3d");
 	if (inFileMap == NULL)
 	{
@@ -295,7 +301,6 @@ int main(int argc, char* argv[])
 	inputNum = (ObjNumber *)ilpMapAddress1;
 	int objectnumber = inputNum->numberOfObject;
 
-
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	LPVOID ilpMapAddress = MapViewOfFile(inFileMap, FILE_MAP_ALL_ACCESS, 0, fileMapStart, mapViewSize);
@@ -307,24 +312,6 @@ int main(int argc, char* argv[])
 	//inputData2 = (ObjData *)ilpMapAddress;
 	inputData.objectPosX = (float *)ilpMapAddress;
 	//= (ObjData *)ilpMapAddress;
-
-	//LPVOID ilpMapAddressB = MapViewOfFile(inFileMap, FILE_MAP_ALL_ACCESS, 0, 0, sizeObjData);
-	//if (ilpMapAddressB == NULL)
-	//{
-	//	perror("Invalid File Mapping Address");
-	//	exit(-1);
-	//}
-
-	//inputData2 = (ObjData *)ilpMapAddressB;
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//for (int i = 0; i < inputData->numberOfObject; i++) {
-	//	cout << inputData->objectPositionX[i] << ", "<< inputData->objectPositionY[i] << ", "<< inputData->objectPositionZ[i] << endl;
-	//}
-	//inputData->objectPositionX = 0.0f;
-	//inputData->objectPositionY = 0.0f;
-	//inputData->objectPositionZ = 0.0f;
 
 	outFileMap = OpenFileMapping(FILE_MAP_ALL_ACCESS, false, "chai3d2manager");
 		//CreateFileMapping((HANDLE)0xFFFFFFFF, NULL, PAGE_READWRITE | SEC_COMMIT, 0, 2048, (LPCSTR)"tracker2unity");
@@ -346,7 +333,7 @@ int main(int argc, char* argv[])
 	outputData->currentHIPX = 0.0f;
 	outputData->currentHIPY = 0.0f;
 	outputData->currentHIPZ = 0.0f;
-
+	*/
     //--------------------------------------------------------------------------
     // OPEN GL - WINDOW DISPLAY
     //--------------------------------------------------------------------------

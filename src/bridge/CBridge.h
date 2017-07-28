@@ -9,8 +9,10 @@
 #ifndef CBridgeH
 #define CBridgeH
 
+#include "chai3d.h"
+
 using namespace std;
-namespace chai3D {
+namespace chai3d {
 
 typedef struct {
 	int sysGran;
@@ -31,12 +33,12 @@ public:
 
 	SIZE_T sizeObjNum;
 	SIZE_T sizeObjData;
-	DWORD sysGran;
+	int sysGran;
 
-	InfoView* Iview;
+	InfoView* iView;
 	int numberOfView;
 	int* sizeOfView;
-	ObjectView* Oview;
+	ObjectView** oViews;
 
 	SYSTEM_INFO sysInfo;
 	LPCSTR errorMsg;
