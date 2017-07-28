@@ -16,13 +16,14 @@ namespace chai3d {
 
 typedef struct {
 	int sysGran;
+	float HIP[3];
 	int numberOfView;
-	int* sizeOfView;
+	int sizeOfView[4];
 } InfoView;
 
 typedef struct {
 	int numberOfData;
-	float* data;
+	float data[12];
 } ObjectView;
 
 class cBridge {
@@ -50,6 +51,8 @@ public:
 	bool openFileMapping(LPCSTR s);
 
 	bool mapViewOfFiles();
+
+	void sendHIPData(float*);
 };
 
 }

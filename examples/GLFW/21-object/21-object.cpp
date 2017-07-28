@@ -218,12 +218,13 @@ typedef struct          // Manager --> CHAI3D (Recving)
 
 HANDLE inFileMap;
 HANDLE outFileMap;
-ObjNumber *inputNum;
-ObjData inputData;
-ObjData *inputData2;
-HIPData *outputData;
+//ObjNumber *inputNum;
+//ObjData inputData;
+//ObjData *inputData2;
+//HIPData *outputData;
 
 cBridge bridge;
+bool isBridgeError;
 
 //==============================================================================
 /*
@@ -272,9 +273,20 @@ int main(int argc, char* argv[])
     // parse first arg to try and locate resources
     resourceRoot = string(argv[0]).substr(0,string(argv[0]).find_last_of("/\\")+1);
 
-	bridge.openFileMapping("objData");
-	bridge.mapViewOfFiles();
-	
+	// Open file mapping and error check
+	isBridgeError = false;
+	if (!bridge.openFileMapping("objData")) {
+		isBridgeError = true;
+	}
+	else {
+		// Map views and error check
+		if (!bridge.mapViewOfFiles()) {
+			isBridgeError = true;
+		}
+		else {
+			bridge.oViews[0]->numberOfData;
+		}
+	}
 	/*
 	inFileMap = OpenFileMapping(FILE_MAP_ALL_ACCESS, false, "manager2chai3d");
 	if (inFileMap == NULL)
@@ -723,9 +735,12 @@ void keyCallback(GLFWwindow* a_window, int a_key, int a_scancode, int a_action, 
     // option - exit
     else if ((a_key == GLFW_KEY_ESCAPE) || (a_key == GLFW_KEY_Q))
     {
-		outputData->currentHIPX = 0;
-		outputData->currentHIPY = 0;
-		outputData->currentHIPZ = 0;
+		float* HIP_SET_ZERO = new float[3];
+		HIP_SET_ZERO[0] = 0;
+		HIP_SET_ZERO[1] = 0;
+		HIP_SET_ZERO[2] = 0;
+		bridge.sendHIPData(HIP_SET_ZERO);
+
         glfwSetWindowShouldClose(a_window, GLFW_TRUE);
     }
 
@@ -875,13 +890,15 @@ void updateGraphics(void)
 		+ cStr(inputData->objectPosX[7], 3) + ", "
 		+ cStr(inputData->objectPosX[8], 3));
 	*/
-	labelHapticDevicePosition->setText(cStr(inputData.objectPosX[0], 3) + ", "
-		+ cStr(inputData.objectPosX[1], 3) + ", "
-		+ cStr(inputData.objectPosX[2], 3));
+	float* data = bridge.oViews[0]->data;
+	labelHapticDevicePosition->setText(cStr(data[0], 3) + ", "
+		+ cStr(data[1], 3) + ", "
+		+ cStr(data[2], 3));
 
-	labelHapticDevicePosition2->setText(cStr(inputData.objectPosX[6], 3) + ", "
-		+ cStr(inputData.objectPosX[7], 3) + ", "
-		+ cStr(inputData.objectPosX[8], 3));
+	//data = bridge.oViews[1]->data;
+	labelHapticDevicePosition2->setText(cStr(data[6], 3) + ", "
+		+ cStr(data[7], 3) + ", "
+		+ cStr(data[8], 3));
 
     // update haptic and graphic rate data
     labelRates->setText(cStr(freqCounterGraphics.getFrequency(), 0) + " Hz / " +
@@ -1037,9 +1054,11 @@ void updateHaptics(void)
 		// read position 
 		cVector3d position;
 		hapticDevice->getPosition(position);
-		outputData->currentHIPX = (float) position.x();
-		outputData->currentHIPY = (float)position.y();
-		outputData->currentHIPZ = (float)position.z();
+		float* HIP = new float[3];
+		HIP[0] = position.x();
+		HIP[1] = position.y();
+		HIP[2] = position.z();
+		bridge.sendHIPData(HIP);
 		//inputData->objectPositionX = 1;//(float) position.x();
 		//inputData->objectPositionY = 1;// (float)position.y();
 		//inputData->objectPositionZ = 1;// (float)position.z();

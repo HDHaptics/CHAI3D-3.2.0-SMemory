@@ -51,18 +51,26 @@ bool cBridge::mapViewOfFiles() {
 
 	int cumulatedSize = sysGran;
 	
-	for (int i = 0; i < numberOfView; i++) {
+	for (int i = 0; i < 1; i++) {
 		dataMapAddress[i] = MapViewOfFile(fileMap, FILE_MAP_ALL_ACCESS, 0, cumulatedSize, sizeOfView[i]);
 		if (dataMapAddress[i] == NULL) {
 			errorMsg = "Invalid file mapping address (data view)";
 			return false;
 		}
-		oViews[i] = (ObjectView *)dataMapAddress;
+		oViews[i] = (ObjectView *)*dataMapAddress;
+		//oViews[i]->data = (float *)(dataMapAddress + 4);
 
 		cumulatedSize += sizeOfView[i];
 	}
 
 	return true;
+}
+
+void cBridge::sendHIPData(float* HIP) {
+	iView->HIP[0] = HIP[0];
+	iView->HIP[1] = HIP[1];
+	iView->HIP[2] = HIP[2];
+	return;
 }
 
 }
