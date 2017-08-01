@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
 
 	// Open file mapping and error check
 	isBridgeError = false;
-	if (!bridge.openFileMapping("objData")) {
+	if (!bridge.openFileMapping(TEXT("HDhaptics"))) {
 		isBridgeError = true;
 	}
 	else {
@@ -890,7 +890,7 @@ void updateGraphics(void)
 		+ cStr(inputData->objectPosX[7], 3) + ", "
 		+ cStr(inputData->objectPosX[8], 3));
 	*/
-	float* data = bridge.oViews[0]->data;
+	float* data = bridge.oViewData[0];
 	labelHapticDevicePosition->setText(cStr(data[0], 3) + ", "
 		+ cStr(data[1], 3) + ", "
 		+ cStr(data[2], 3));

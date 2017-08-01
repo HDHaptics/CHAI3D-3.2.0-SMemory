@@ -44,10 +44,12 @@ bool cBridge::mapViewOfFiles() {
 	iView = (InfoView *)infoMapAddress;
 	sysGran = iView->sysGran;
 	numberOfView = iView->numberOfView;
-	sizeOfView = iView->sizeOfView;
+	sizeOfView = &(iView->sizeOfView);//iView->sizeOfView;
+
 	
 	dataMapAddress = new LPVOID[numberOfView];
 	oViews = new ObjectView*[numberOfView];
+	oViewData = new float*[numberOfView];
 
 	int cumulatedSize = sysGran;
 	
@@ -59,7 +61,8 @@ bool cBridge::mapViewOfFiles() {
 		}
 		oViews[i] = (ObjectView *)*dataMapAddress;
 		//oViews[i]->data = (float *)(dataMapAddress + 4);
-
+		oViewData[i] = &(oViews[i]->data);//oViews[i]->data = &oViews[i]->data;
+		
 		cumulatedSize += sizeOfView[i];
 	}
 
@@ -67,9 +70,9 @@ bool cBridge::mapViewOfFiles() {
 }
 
 void cBridge::sendHIPData(float* HIP) {
-	iView->HIP[0] = HIP[0];
-	iView->HIP[1] = HIP[1];
-	iView->HIP[2] = HIP[2];
+	iView->HIP[0] = HIP[0] * 10000;
+	iView->HIP[1] = HIP[1] * 10000;
+	iView->HIP[2] = HIP[2] * 10000;
 	return;
 }
 

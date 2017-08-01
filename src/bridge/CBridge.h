@@ -18,12 +18,12 @@ typedef struct {
 	int sysGran;
 	float HIP[3];
 	int numberOfView;
-	int sizeOfView[4];
+	int sizeOfView;
 } InfoView;
 
 typedef struct {
 	int numberOfData;
-	float data[12];
+	float data;
 } ObjectView;
 
 class cBridge {
@@ -40,6 +40,7 @@ public:
 	int numberOfView;
 	int* sizeOfView;
 	ObjectView** oViews;
+	float** oViewData;
 
 	SYSTEM_INFO sysInfo;
 	LPCSTR errorMsg;
