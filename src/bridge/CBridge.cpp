@@ -70,10 +70,22 @@ bool cBridge::mapViewOfFiles() {
 }
 
 void cBridge::sendHIPData(float* HIP) {
-	iView->HIP[0] = HIP[0] * 10000;
-	iView->HIP[1] = HIP[1] * 10000;
-	iView->HIP[2] = HIP[2] * 10000;
+	float scale = 10000;
+	iView->HIP[0] = HIP[0] * scale;
+	iView->HIP[1] = HIP[1] * scale;
+	iView->HIP[2] = HIP[2] * scale;
 	return;
+}
+
+bool cBridge::getObjectData(int objNum, cVector3d& pos, cVector3d& rot) {
+	int currentLocation = objNum * 6;
+	pos.x(oViewData[0][currentLocation + 0]);
+	pos.y(oViewData[0][currentLocation + 1]);
+	pos.z(oViewData[0][currentLocation + 2]);
+	rot.x(oViewData[0][currentLocation + 3]);
+	rot.y(oViewData[0][currentLocation + 4]);
+	rot.z(oViewData[0][currentLocation + 5]);
+	return true;
 }
 
 }

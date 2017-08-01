@@ -54,6 +54,8 @@ public:
 	bool mapViewOfFiles();
 
 	void sendHIPData(float*);
+
+	bool getObjectData(int, cVector3d&, cVector3d&);
 };
 
 }

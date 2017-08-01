@@ -279,7 +279,7 @@ int main(int argc, char* argv[])
 		isBridgeError = true;
 	}
 	else {
-		// Map views and error check
+		// Map views and error chec	k
 		if (!bridge.mapViewOfFiles()) {
 			isBridgeError = true;
 		}
@@ -440,9 +440,9 @@ int main(int argc, char* argv[])
                                    cVector3d(0,0,1),    // zenith direction
                                    cVector3d(1,0,0));   // azimuth direction
 
-    camera->setSphericalDeg(1.0,    // spherical coordinate radius
+    camera->setSphericalDeg(10.0,    // spherical coordinate radius
                             65,     // spherical coordinate polar angle
-                            20);    // spherical coordinate azimuth angle
+                            0);    // spherical coordinate azimuth angle
 
     // set the near and far clipping planes of the camera
     // anything in front or behind these clipping planes will not be rendered
@@ -503,7 +503,7 @@ int main(int argc, char* argv[])
     hapticDevice->setEnableGripperUserSwitch(true);
 
     // define the radius of the tool (sphere)
-    double toolRadius = 0.01;
+    double toolRadius = 0.1;
 
     // define a radius for the tool
     tool->setRadius(toolRadius);
@@ -519,7 +519,7 @@ int main(int argc, char* argv[])
 
     // oriente tool with camera
     tool->setLocalRot(camera->getLocalRot());
-
+	
     // haptic forces are enabled only if small forces are first sent to the device;
     // this mode avoids the force spike that occurs when the application starts when 
     // the tool is located inside an object for instance. 
@@ -548,11 +548,11 @@ int main(int argc, char* argv[])
 
     // load an object file
     bool fileload;
-    fileload = object->loadFromFile(RESOURCE_PATH("../resources/models/hubble/hubble.3ds"));
+    fileload = object->loadFromFile(RESOURCE_PATH("../resources/models/box/box.3ds"));
     if (!fileload)
     {
         #if defined(_MSVC)
-        fileload = object->loadFromFile("../../../bin/resources/models/hubble/hubble.3ds");
+        fileload = object->loadFromFile("../../../bin/resources/models/box/box.3ds");
         #endif
     }
     if (!fileload)
@@ -569,11 +569,12 @@ int main(int argc, char* argv[])
     object->computeBoundaryBox(true);
     double size = cSub(object->getBoundaryMax(), object->getBoundaryMin()).length();
 
-    // resize object to screen
+	// resize object to screen
     if (size > 0.001)
     {
-        object->scale(1.0 / size);
+        object->scale(1 / size);
     }
+	object->scaleXYZ(1, 1, 10);
 
      // compute a boundary box
     object->computeBoundaryBox(true);
@@ -594,10 +595,11 @@ int main(int argc, char* argv[])
     object->setUseDisplayList(true);
 
     // center object in scene
-    object->setLocalPos(-1.0 * object->getBoundaryCenter());
+    //object->setLocalPos(-1.0 * object->getBoundaryCenter());
+	object->setLocalPos(2, 0, 0);
 
     // rotate object in scene
-    object->rotateExtrinsicEulerAnglesDeg(0, 0, 90, C_EULER_ORDER_XYZ);
+    object->rotateExtrinsicEulerAnglesDeg(0, 0, 0, C_EULER_ORDER_XYZ);
 
     // compute all edges of object for which adjacent triangles have more than 40 degree angle
     object->computeAllEdges(40);
@@ -890,23 +892,24 @@ void updateGraphics(void)
 		+ cStr(inputData->objectPosX[7], 3) + ", "
 		+ cStr(inputData->objectPosX[8], 3));
 	*/
-	float* data = bridge.oViewData[0];
-	labelHapticDevicePosition->setText(cStr(data[0], 3) + ", "
-		+ cStr(data[1], 3) + ", "
-		+ cStr(data[2], 3));
+	if (bridge.numberOfView != 0) {
+		float* data = bridge.oViewData[0];
+		labelHapticDevicePosition->setText(cStr(data[0], 3) + ", "
+			+ cStr(data[1], 3) + ", "
+			+ cStr(data[2], 3));
 
-	//data = bridge.oViews[1]->data;
-	labelHapticDevicePosition2->setText(cStr(data[6], 3) + ", "
-		+ cStr(data[7], 3) + ", "
-		+ cStr(data[8], 3));
+		//data = bridge.oViews[1]->data;
+		labelHapticDevicePosition2->setText(cStr(data[6], 3) + ", "
+			+ cStr(data[7], 3) + ", "
+			+ cStr(data[8], 3));
 
-    // update haptic and graphic rate data
-    labelRates->setText(cStr(freqCounterGraphics.getFrequency(), 0) + " Hz / " +
-        cStr(freqCounterHaptics.getFrequency(), 0) + " Hz");
+		// update haptic and graphic rate data
+		labelRates->setText(cStr(freqCounterGraphics.getFrequency(), 0) + " Hz / " +
+			cStr(freqCounterHaptics.getFrequency(), 0) + " Hz");
 
-    // update position of label
-    labelRates->setLocalPos((int)(0.5 * (width - labelRates->getWidth())), 15);
-
+		// update position of label
+		labelRates->setLocalPos((int)(0.5 * (width - labelRates->getWidth())), 15);
+	}
 
     /////////////////////////////////////////////////////////////////////
     // RENDER SCENE
@@ -1059,6 +1062,9 @@ void updateHaptics(void)
 		HIP[1] = position.y();
 		HIP[2] = position.z();
 		bridge.sendHIPData(HIP);
+		cVector3d objPos, objRot;
+		bridge.getObjectData(0, objPos, objRot);
+		object->setLocalPos(objPos);
 		//inputData->objectPositionX = 1;//(float) position.x();
 		//inputData->objectPositionY = 1;// (float)position.y();
 		//inputData->objectPositionZ = 1;// (float)position.z();
