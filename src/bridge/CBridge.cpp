@@ -63,6 +63,15 @@ bool cBridge::mapViewOfFiles() {
 		//oViews[i]->data = (float *)(dataMapAddress + 4);
 		oViewData[i] = &(oViews[i]->data);//oViews[i]->data = &oViews[i]->data;
 		
+		int dataNumber = oViews[i]->numberOfData;
+		oPrimitives = new ObjectPrimitive*[dataNumber];
+		
+		
+		float* dataAddress = &(oViews[i]->data);
+		int sizeOfStruct = sizeof(ObjectPrimitive);
+		for (int j = 0; j < dataNumber; j++) {
+			oPrimitives[j] = (ObjectPrimitive*) (dataAddress + (sizeOfStruct * j));
+		}
 		cumulatedSize += sizeOfView[i];
 	}
 
@@ -77,24 +86,32 @@ void cBridge::sendHIPData(float* HIP) {
 	return;
 }
 
-bool cBridge::getObjectData(int objNum, cVector3d& pos, cMatrix3d& rot) {
-	int currentLocation = objNum * 6;
-	float scale = 0.003;
-	pos.x(oViewData[0][currentLocation + 0] * scale);
-	pos.y(-oViewData[0][currentLocation + 1] * scale);
-	pos.z(oViewData[0][currentLocation + 2] * scale);
-	const double rotX = oViewData[0][currentLocation + 3];
-	const double rotY = -oViewData[0][currentLocation + 4];
-	const double rotZ = -oViewData[0][currentLocation + 5];
-	//rot.setAxisAngleRotationDeg(rotX, rotY, rotZ, 0);
+
+bool cBridge::getObjectData(int objNum, cVector3d& pos, cMatrix3d& rot, cVector3d& scale) {
+	// out of bound -> goes wrong
+	if (objNum >= oViews[0]->numberOfData)
+		return false;
+
+	// FIXME: current scale factor is not right
+	double scaleFactor = 0.003;
+
+	// Get position data of some object
+	const double posX = (oPrimitives[objNum]->objectPositionX);
+	const double posY = (-oPrimitives[objNum]->objectPositionY);
+	const double posZ = (oPrimitives[objNum]->objectPositionZ);
+	pos.set(posX * scaleFactor, posY * scaleFactor, posZ * scaleFactor);
+
+	// Set rotation data of some object
+	const double rotX = oPrimitives[objNum]->objectRotationRoll;
+	const double rotY = -oPrimitives[objNum]->objectRotationPitch;
+	const double rotZ = -oPrimitives[objNum]->objectRotationYaw;
 	rot.setExtrinsicEulerRotationDeg(rotX, rotY, rotZ, C_EULER_ORDER_XYZ);
-	//rot.setAxisAngleRotationDeg((double) oViewData[0][currentLocation + 3], 
-	//	(double) oViewData[0][currentLocation + 4], 
-	//	(double) oViewData[0][currentLocation + 5], 0);
-	
-	//rot.x(oViewData[0][currentLocation + 3]);
-	//rot.y(oViewData[0][currentLocation + 4]);
-	//rot.z(oViewData[0][currentLocation + 5]);
+
+	// Set scale data of some object
+	scale.x(oPrimitives[objNum]->objectScaleX);
+	scale.y(oPrimitives[objNum]->objectScaleY);
+	scale.z(oPrimitives[objNum]->objectScaleZ);
+
 	return true;
 }
 

@@ -26,6 +26,18 @@ typedef struct {
 	float data;
 } ObjectView;
 
+typedef struct {
+	float objectPositionX;
+	float objectPositionY;
+	float objectPositionZ;
+	float objectRotationRoll;
+	float objectRotationPitch;
+	float objectRotationYaw;
+	float objectScaleX;
+	float objectScaleY;
+	float objectScaleZ;
+} ObjectPrimitive;
+
 class cBridge {
 public:
 	HANDLE fileMap;
@@ -40,6 +52,7 @@ public:
 	int numberOfView;
 	int* sizeOfView;
 	ObjectView** oViews;
+	ObjectPrimitive** oPrimitives;
 	float** oViewData;
 
 	SYSTEM_INFO sysInfo;
@@ -55,7 +68,7 @@ public:
 
 	void sendHIPData(float*);
 
-	bool getObjectData(int, cVector3d&, cMatrix3d&);
+	bool getObjectData(int, cVector3d&, cMatrix3d&, cVector3d&);
 };
 
 }

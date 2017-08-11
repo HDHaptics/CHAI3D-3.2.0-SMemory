@@ -1066,9 +1066,12 @@ void updateHaptics(void)
 		bridge.sendHIPData(HIP);
 		cVector3d objPos;
 		cMatrix3d objRot;
-		bridge.getObjectData(0, objPos, objRot);
+		cVector3d objScale;
+		bridge.getObjectData(0, objPos, objRot, objScale);
 		object->setLocalPos(objPos);
 		object->setLocalRot(objRot);
+		//object->scaleXYZ(objScale.x, objScale.y, objScale.z);
+
 		//inputData->objectPositionX = 1;//(float) position.x();
 		//inputData->objectPositionY = 1;// (float)position.y();
 		//inputData->objectPositionZ = 1;// (float)position.z();
