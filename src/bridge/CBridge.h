@@ -55,7 +55,7 @@ public:
 
 	void sendHIPData(float*);
 
-	bool getObjectData(int, cVector3d&, cVector3d&);
+	bool getObjectData(int, cVector3d&, cMatrix3d&);
 };
 
 }

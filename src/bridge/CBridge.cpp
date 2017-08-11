@@ -70,21 +70,31 @@ bool cBridge::mapViewOfFiles() {
 }
 
 void cBridge::sendHIPData(float* HIP) {
-	float scale = 10000;
-	iView->HIP[0] = HIP[0] * scale;
+	float scale = 1200;
+	iView->HIP[0] = -HIP[0] * scale;
 	iView->HIP[1] = HIP[1] * scale;
 	iView->HIP[2] = HIP[2] * scale;
 	return;
 }
 
-bool cBridge::getObjectData(int objNum, cVector3d& pos, cVector3d& rot) {
+bool cBridge::getObjectData(int objNum, cVector3d& pos, cMatrix3d& rot) {
 	int currentLocation = objNum * 6;
-	pos.x(oViewData[0][currentLocation + 0]);
-	pos.y(oViewData[0][currentLocation + 1]);
-	pos.z(oViewData[0][currentLocation + 2]);
-	rot.x(oViewData[0][currentLocation + 3]);
-	rot.y(oViewData[0][currentLocation + 4]);
-	rot.z(oViewData[0][currentLocation + 5]);
+	float scale = 0.003;
+	pos.x(oViewData[0][currentLocation + 0] * scale);
+	pos.y(-oViewData[0][currentLocation + 1] * scale);
+	pos.z(oViewData[0][currentLocation + 2] * scale);
+	const double rotX = oViewData[0][currentLocation + 3];
+	const double rotY = -oViewData[0][currentLocation + 4];
+	const double rotZ = -oViewData[0][currentLocation + 5];
+	//rot.setAxisAngleRotationDeg(rotX, rotY, rotZ, 0);
+	rot.setExtrinsicEulerRotationDeg(rotX, rotY, rotZ, C_EULER_ORDER_XYZ);
+	//rot.setAxisAngleRotationDeg((double) oViewData[0][currentLocation + 3], 
+	//	(double) oViewData[0][currentLocation + 4], 
+	//	(double) oViewData[0][currentLocation + 5], 0);
+	
+	//rot.x(oViewData[0][currentLocation + 3]);
+	//rot.y(oViewData[0][currentLocation + 4]);
+	//rot.z(oViewData[0][currentLocation + 5]);
 	return true;
 }
 

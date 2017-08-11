@@ -86,6 +86,7 @@ cDirectionalLight *light;
 
 // a virtual object
 cMultiMesh* object;
+float objScale;
 
 // a haptic device handler
 cHapticDeviceHandler* handler;
@@ -438,11 +439,11 @@ int main(int argc, char* argv[])
     // define a basis in spherical coordinates for the camera
     camera->setSphericalReferences(cVector3d(0,0,0),    // origin
                                    cVector3d(0,0,1),    // zenith direction
-                                   cVector3d(1,0,0));   // azimuth direction
+                                   cVector3d(0,1,0));   // azimuth direction
 
-    camera->setSphericalDeg(10.0,    // spherical coordinate radius
-                            65,     // spherical coordinate polar angle
-                            0);    // spherical coordinate azimuth angle
+    camera->setSphericalDeg(5.0,    // spherical coordinate radius
+                            70,     // spherical coordinate polar angle
+                            90);    // spherical coordinate azimuth angle
 
     // set the near and far clipping planes of the camera
     // anything in front or behind these clipping planes will not be rendered
@@ -574,7 +575,8 @@ int main(int argc, char* argv[])
     {
         object->scale(1 / size);
     }
-	object->scaleXYZ(1, 1, 10);
+	objScale = 1.2;
+	object->scaleXYZ(1 * objScale, 1 * objScale, 10 * objScale);
 
      // compute a boundary box
     object->computeBoundaryBox(true);
@@ -899,9 +901,9 @@ void updateGraphics(void)
 			+ cStr(data[2], 3));
 
 		//data = bridge.oViews[1]->data;
-		labelHapticDevicePosition2->setText(cStr(data[6], 3) + ", "
-			+ cStr(data[7], 3) + ", "
-			+ cStr(data[8], 3));
+		labelHapticDevicePosition2->setText(cStr(data[3], 3) + ", "
+			+ cStr(data[4], 3) + ", "
+			+ cStr(data[5], 3));
 
 		// update haptic and graphic rate data
 		labelRates->setText(cStr(freqCounterGraphics.getFrequency(), 0) + " Hz / " +
@@ -1062,9 +1064,11 @@ void updateHaptics(void)
 		HIP[1] = position.y();
 		HIP[2] = position.z();
 		bridge.sendHIPData(HIP);
-		cVector3d objPos, objRot;
+		cVector3d objPos;
+		cMatrix3d objRot;
 		bridge.getObjectData(0, objPos, objRot);
 		object->setLocalPos(objPos);
+		object->setLocalRot(objRot);
 		//inputData->objectPositionX = 1;//(float) position.x();
 		//inputData->objectPositionY = 1;// (float)position.y();
 		//inputData->objectPositionZ = 1;// (float)position.z();
