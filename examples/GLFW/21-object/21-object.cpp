@@ -86,6 +86,8 @@ cDirectionalLight *light;
 
 // a virtual object
 cMultiMesh* object;
+vector<cMultiMesh*> objects;
+
 float objScale;
 
 // a haptic device handler
@@ -275,6 +277,8 @@ int main(int argc, char* argv[])
     resourceRoot = string(argv[0]).substr(0,string(argv[0]).find_last_of("/\\")+1);
 
 	// Open file mapping and error check
+	//bridge = new cBridge();
+	
 	isBridgeError = false;
 	if (!bridge.openFileMapping(TEXT("HDhaptics"))) {
 		isBridgeError = true;
@@ -489,6 +493,7 @@ int main(int argc, char* argv[])
 
     // get access to the first available haptic device found
     handler->getDevice(hapticDevice, 0);
+	bridge.registerHapticDevice(hapticDevice);
 
     // retrieve information about the current haptic device
     cHapticDeviceInfo hapticDeviceInfo = hapticDevice->getSpecifications();
@@ -543,6 +548,7 @@ int main(int argc, char* argv[])
 
     // create a virtual mesh
     object = new cMultiMesh();
+	objects.push_back(object);
 
     // add object to world
     world->addChild(object);
@@ -621,6 +627,7 @@ int main(int argc, char* argv[])
     object->setShowEdges(showEdges);
     object->setShowNormals(showNormals);
 
+	bridge.registerObjects(objects);
 
     //--------------------------------------------------------------------------
     // WIDGETS
@@ -885,15 +892,7 @@ void updateGraphics(void)
     /////////////////////////////////////////////////////////////////////
 
 	// update position data
-	/*
-	labelHapticDevicePosition->setText(cStr(inputData->objectPosX[0], 3) + ", " 
-		+ cStr(inputData->objectPosX[1], 3) + ", " 
-		+ cStr(inputData->objectPosX[2], 3));
 
-	labelHapticDevicePosition2->setText(cStr(inputData->objectPosX[6], 3) + ", "
-		+ cStr(inputData->objectPosX[7], 3) + ", "
-		+ cStr(inputData->objectPosX[8], 3));
-	*/
 	if (bridge.numberOfView != 0) {
 		float* data = bridge.oViewData[0];
 		labelHapticDevicePosition->setText(cStr(data[0], 3) + ", "
@@ -1055,15 +1054,12 @@ void updateHaptics(void)
         // send forces to haptic device
         tool->applyToDevice();  
 
+		// update bridge information
+		bridge.Tick();
 
 		// read position 
 		cVector3d position;
 		hapticDevice->getPosition(position);
-		float* HIP = new float[3];
-		HIP[0] = position.x();
-		HIP[1] = position.y();
-		HIP[2] = position.z();
-		bridge.sendHIPData(HIP);
 		cVector3d objPos;
 		cMatrix3d objRot;
 		cVector3d objScale;

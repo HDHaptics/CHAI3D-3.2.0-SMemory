@@ -36,10 +36,14 @@ typedef struct {
 	float objectScaleX;
 	float objectScaleY;
 	float objectScaleZ;
-} ObjectPrimitive;
+} ObjectConfiguration;
 
 class cBridge {
 public:
+	/* Register important components */
+	cGenericHapticDevicePtr hapticDevice;
+	vector<cMultiMesh *> objects;
+
 	HANDLE fileMap;
 	LPVOID infoMapAddress;
 	LPVOID* dataMapAddress;
@@ -52,7 +56,7 @@ public:
 	int numberOfView;
 	int* sizeOfView;
 	ObjectView** oViews;
-	ObjectPrimitive** oPrimitives;
+	ObjectConfiguration** oConfigurations;
 	float** oViewData;
 
 	SYSTEM_INFO sysInfo;
@@ -60,14 +64,25 @@ public:
 
 	int currentViewNumber;
 
+	/* Constructor */
 	cBridge();
+	
+	/* Grouping functions */
+	bool Tick();
 
+	/* Registering function */
+	bool registerHapticDevice(cGenericHapticDevicePtr);
+	bool registerObjects(vector<cMultiMesh *>);
+
+	/* Functions */
 	bool openFileMapping(LPCSTR s);
 
 	bool mapViewOfFiles();
 
 	void sendHIPData(float*);
+	bool uploadHIPData();
 
+	bool updateObject();
 	bool getObjectData(int, cVector3d&, cMatrix3d&, cVector3d&);
 };
 

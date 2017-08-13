@@ -10,13 +10,40 @@
 
 using namespace std;
 namespace chai3d {
-
+	
+/* Constructor */
 cBridge::cBridge() {
 	currentViewNumber = 0;
 	numberOfView = 0;
 	sizeOfView = new int[0]{};
 }
 
+/* Grouping functions */
+bool cBridge::Tick() {
+	bool isSuccess = true;
+
+	if (!uploadHIPData()) {
+		isSuccess = false;
+		errorMsg = "Fail to upload HIP Info.";
+	}
+		
+	return true;
+}
+
+bool cBridge::registerObjects(vector<cMultiMesh *> obj) {
+	objects = obj;
+}
+
+/* Registering function */
+bool cBridge::registerHapticDevice(cGenericHapticDevicePtr device) {
+	if (device == NULL)
+		return false;
+
+	hapticDevice = device;
+	return true;
+}
+
+/* Functions */
 bool cBridge::openFileMapping(LPCSTR s) {
 	fileMap = OpenFileMapping(FILE_MAP_ALL_ACCESS, false, s);
 
@@ -49,7 +76,7 @@ bool cBridge::mapViewOfFiles() {
 	
 	dataMapAddress = new LPVOID[numberOfView];
 	oViews = new ObjectView*[numberOfView];
-	oViewData = new float*[numberOfView];
+	//oViewData = new float*[numberOfView];
 
 	int cumulatedSize = sysGran;
 	
@@ -61,16 +88,16 @@ bool cBridge::mapViewOfFiles() {
 		}
 		oViews[i] = (ObjectView *)*dataMapAddress;
 		//oViews[i]->data = (float *)(dataMapAddress + 4);
-		oViewData[i] = &(oViews[i]->data);//oViews[i]->data = &oViews[i]->data;
+		//oViewData[i] = &(oViews[i]->data);//oViews[i]->data = &oViews[i]->data;
 		
 		int dataNumber = oViews[i]->numberOfData;
-		oPrimitives = new ObjectPrimitive*[dataNumber];
+		oConfigurations = new ObjectConfiguration*[dataNumber];
 		
 		
 		float* dataAddress = &(oViews[i]->data);
-		int sizeOfStruct = sizeof(ObjectPrimitive);
+		int sizeOfStruct = sizeof(ObjectConfiguration);
 		for (int j = 0; j < dataNumber; j++) {
-			oPrimitives[j] = (ObjectPrimitive*) (dataAddress + (sizeOfStruct * j));
+			oConfigurations[j] = (ObjectConfiguration*) (dataAddress + (sizeOfStruct * j));
 		}
 		cumulatedSize += sizeOfView[i];
 	}
@@ -86,6 +113,54 @@ void cBridge::sendHIPData(float* HIP) {
 	return;
 }
 
+bool cBridge::uploadHIPData() {
+	if (hapticDevice == NULL)
+		return false;
+
+	float scaleFactor = 1200; // FIXME: This is not final.
+	cVector3d HIP;
+	hapticDevice->getPosition(HIP);
+	iView->HIP[0] = -HIP.x * scaleFactor;
+	iView->HIP[1] = HIP.y * scaleFactor;
+	iView->HIP[2] = HIP.z * scaleFactor;
+
+	return true;
+}
+
+bool cBridge::updateObject() {
+	
+	cVector3d position;
+	cMatrix3d rotation;
+	cVector3d scale;
+	int sizeOfStruct;
+
+	int numberOfViews = iView->numberOfView;
+	for (int i = 0; i < numberOfView; i++) {
+		int numberOfData = oViews[i]->numberOfData;
+		// select structure here
+		/*switch (viewInformation[i]->type) {
+		case objectConfiguration:
+			sizeOfStruct = sizeof(ObjectConfiguration);
+			break;
+		case objectDeformation:
+			sizeOfStruct = sizeof(ObjectDeformation);
+			break;
+		}*/
+		sizeOfStruct = sizeof(ObjectConfiguration);
+
+		float* address = &(oViews[i]->data);
+		for (int j = 0; j < numberOfData; j++) {
+			cVector3d objPos;
+			cMatrix3d objRot;
+			cVector3d objScale;
+			getObjectData(j, objPos, objRot, objScale);
+
+			objects[j]->setLocalPos(objPos);
+			objects[j]->setLocalRot(objRot);
+			//objects[j]->scaleXYZ(objScale.x, objScale.y, objScale.z);
+		}
+	}
+}
 
 bool cBridge::getObjectData(int objNum, cVector3d& pos, cMatrix3d& rot, cVector3d& scale) {
 	// out of bound -> goes wrong
@@ -96,21 +171,21 @@ bool cBridge::getObjectData(int objNum, cVector3d& pos, cMatrix3d& rot, cVector3
 	double scaleFactor = 0.003;
 
 	// Get position data of some object
-	const double posX = (oPrimitives[objNum]->objectPositionX);
-	const double posY = (-oPrimitives[objNum]->objectPositionY);
-	const double posZ = (oPrimitives[objNum]->objectPositionZ);
+	const double posX = (oConfigurations[objNum]->objectPositionX);
+	const double posY = (-oConfigurations[objNum]->objectPositionY);
+	const double posZ = (oConfigurations[objNum]->objectPositionZ);
 	pos.set(posX * scaleFactor, posY * scaleFactor, posZ * scaleFactor);
 
 	// Set rotation data of some object
-	const double rotX = oPrimitives[objNum]->objectRotationRoll;
-	const double rotY = -oPrimitives[objNum]->objectRotationPitch;
-	const double rotZ = -oPrimitives[objNum]->objectRotationYaw;
+	const double rotX = oConfigurations[objNum]->objectRotationRoll;
+	const double rotY = -oConfigurations[objNum]->objectRotationPitch;
+	const double rotZ = -oConfigurations[objNum]->objectRotationYaw;
 	rot.setExtrinsicEulerRotationDeg(rotX, rotY, rotZ, C_EULER_ORDER_XYZ);
 
 	// Set scale data of some object
-	scale.x(oPrimitives[objNum]->objectScaleX);
-	scale.y(oPrimitives[objNum]->objectScaleY);
-	scale.z(oPrimitives[objNum]->objectScaleZ);
+	scale.x(oConfigurations[objNum]->objectScaleX);
+	scale.y(oConfigurations[objNum]->objectScaleY);
+	scale.z(oConfigurations[objNum]->objectScaleZ);
 
 	return true;
 }
