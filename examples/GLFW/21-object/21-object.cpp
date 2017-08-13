@@ -109,6 +109,12 @@ cLabel* labelHapticDevicePosition;
 // a label to display the position [m] of the haptic device
 cLabel* labelHapticDevicePosition2;
 
+// a label to display a information message
+cLabel* labelInformationMessage;
+
+// a label to display an error message
+cLabel* labelErrorMessage;
+
 // a global variable to store the position [m] of the haptic device
 cVector3d hapticDevicePosition;
 
@@ -141,6 +147,9 @@ cFrequencyCounter freqCounterHaptics;
 
 // haptic thread
 cThread* hapticsThread;
+
+// graphic loading thread
+cThread* modelLoadThread;
 
 // a handle to window display context
 GLFWwindow* window = NULL;
@@ -187,6 +196,9 @@ void updateGraphics(void);
 
 // this function contains the main haptics simulation loop
 void updateHaptics(void);
+
+// this function updates model
+void loadModels(void);
 
 // this function closes the application
 void close(void);
@@ -647,6 +659,16 @@ int main(int argc, char* argv[])
 	labelHapticDevicePosition2->m_fontColor.setBlack();
 	camera->m_frontLayer->addChild(labelHapticDevicePosition2);
 
+	// create a label to display the position of haptic device
+	labelInformationMessage = new cLabel(font);
+	labelInformationMessage->m_fontColor.setBlue();
+	camera->m_frontLayer->addChild(labelInformationMessage);
+
+	// create a label to display the position of haptic device
+	labelErrorMessage = new cLabel(font);
+	labelErrorMessage->m_fontColor.setRed();
+	camera->m_frontLayer->addChild(labelErrorMessage);
+
     
     // create a label to display the haptic and graphic rate of the simulation
     labelRates = new cLabel(font);
@@ -671,6 +693,10 @@ int main(int argc, char* argv[])
     // create a thread which starts the main haptics rendering loop
     hapticsThread = new cThread();
     hapticsThread->start(updateHaptics, CTHREAD_PRIORITY_HAPTICS);
+
+	// create a thread which starts the main haptics rendering loop
+	modelLoadThread = new cThread();
+	modelLoadThread->start(loadModels, CTHREAD_PRIORITY_HAPTICS);
 
     // setup callback when application exits
     atexit(close);
@@ -724,6 +750,10 @@ void windowSizeCallback(GLFWwindow* a_window, int a_width, int a_height)
 	labelHapticDevicePosition->setLocalPos(20, height - 60, 0);
 	// update position of label
 	labelHapticDevicePosition2->setLocalPos(20, height - 100, 0);
+	// update position of label
+	labelInformationMessage->setLocalPos(20, height - 140, 0);
+	// update position of label
+	labelErrorMessage->setLocalPos(20, height - 180, 0);
 }
 
 //------------------------------------------------------------------------------
@@ -879,6 +909,7 @@ void close(void)
 
     // delete resources
     delete hapticsThread;
+	delete modelLoadThread;
     delete world;
     delete handler;
 }
@@ -894,15 +925,14 @@ void updateGraphics(void)
 	// update position data
 
 	if (bridge.numberOfView != 0) {
-		float* data = bridge.oViewData[0];
-		labelHapticDevicePosition->setText(cStr(data[0], 3) + ", "
-			+ cStr(data[1], 3) + ", "
-			+ cStr(data[2], 3));
+		labelHapticDevicePosition->setText(bridge.getCurrentPosition(0));
 
 		//data = bridge.oViews[1]->data;
-		labelHapticDevicePosition2->setText(cStr(data[3], 3) + ", "
-			+ cStr(data[4], 3) + ", "
-			+ cStr(data[5], 3));
+		labelHapticDevicePosition2->setText(bridge.getCurrentRotation(0));
+
+		// update info and error message from bridge
+		labelInformationMessage->setText(bridge.getInformationMessage());
+		labelErrorMessage->setText(bridge.getErrorMessage());
 
 		// update haptic and graphic rate data
 		labelRates->setText(cStr(freqCounterGraphics.getFrequency(), 0) + " Hz / " +
@@ -1057,27 +1087,26 @@ void updateHaptics(void)
 		// update bridge information
 		bridge.Tick();
 
-		// read position 
-		cVector3d position;
-		hapticDevice->getPosition(position);
 		cVector3d objPos;
 		cMatrix3d objRot;
 		cVector3d objScale;
 		bridge.getObjectData(0, objPos, objRot, objScale);
 		object->setLocalPos(objPos);
 		object->setLocalRot(objRot);
-		//object->scaleXYZ(objScale.x, objScale.y, objScale.z);
 
-		//inputData->objectPositionX = 1;//(float) position.x();
-		//inputData->objectPositionY = 1;// (float)position.y();
-		//inputData->objectPositionZ = 1;// (float)position.z();
-
+		// read position 
+		cVector3d position;
+		hapticDevice->getPosition(position);
 		// update global variable for graphic display update
 		hapticDevicePosition = position;
     }
     
     // exit haptics thread
     simulationFinished = true;
+}
+
+void loadModels(void) {
+	
 }
 
 //------------------------------------------------------------------------------

@@ -59,8 +59,10 @@ public:
 	ObjectConfiguration** oConfigurations;
 	float** oViewData;
 
+	/* Messages */
 	SYSTEM_INFO sysInfo;
-	LPCSTR errorMsg;
+	string errorMsg;
+	string infoMsg;
 
 	int currentViewNumber;
 
@@ -70,7 +72,7 @@ public:
 	/* Grouping functions */
 	bool Tick();
 
-	/* Registering function */
+	/* Registering functions */
 	bool registerHapticDevice(cGenericHapticDevicePtr);
 	bool registerObjects(vector<cMultiMesh *>);
 
@@ -84,6 +86,13 @@ public:
 
 	bool updateObject();
 	bool getObjectData(int, cVector3d&, cMatrix3d&, cVector3d&);
+
+	/* Current status functions */
+	string getCurrentPosition(int);
+	string getCurrentRotation(int);
+	string getCurrentScale(int);
+	string getInformationMessage();
+	string getErrorMessage();
 };
 
 }

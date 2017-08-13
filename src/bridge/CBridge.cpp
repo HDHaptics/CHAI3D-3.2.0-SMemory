@@ -16,6 +16,9 @@ cBridge::cBridge() {
 	currentViewNumber = 0;
 	numberOfView = 0;
 	sizeOfView = new int[0]{};
+
+	infoMsg = "";
+	errorMsg = "";
 }
 
 /* Grouping functions */
@@ -26,12 +29,19 @@ bool cBridge::Tick() {
 		isSuccess = false;
 		errorMsg = "Fail to upload HIP Info.";
 	}
+
+	if (!updateObject()) {
+		isSuccess = false;
+		errorMsg = "Failed to update object Info.";
+	}
 		
 	return true;
 }
 
 bool cBridge::registerObjects(vector<cMultiMesh *> obj) {
 	objects = obj;
+
+	return true;
 }
 
 /* Registering function */
@@ -120,22 +130,23 @@ bool cBridge::uploadHIPData() {
 	float scaleFactor = 1200; // FIXME: This is not final.
 	cVector3d HIP;
 	hapticDevice->getPosition(HIP);
-	iView->HIP[0] = -HIP.x * scaleFactor;
-	iView->HIP[1] = HIP.y * scaleFactor;
-	iView->HIP[2] = HIP.z * scaleFactor;
+	iView->HIP[0] = -HIP.x() * scaleFactor;
+	iView->HIP[1] = HIP.y() * scaleFactor;
+	iView->HIP[2] = HIP.z() * scaleFactor;
 
 	return true;
 }
 
 bool cBridge::updateObject() {
-	
+	bool isSuccess = true;
+
 	cVector3d position;
 	cMatrix3d rotation;
 	cVector3d scale;
 	int sizeOfStruct;
 
 	int numberOfViews = iView->numberOfView;
-	for (int i = 0; i < numberOfView; i++) {
+	for (int i = 0; i < 1; i++) {
 		int numberOfData = oViews[i]->numberOfData;
 		// select structure here
 		/*switch (viewInformation[i]->type) {
@@ -149,17 +160,19 @@ bool cBridge::updateObject() {
 		sizeOfStruct = sizeof(ObjectConfiguration);
 
 		float* address = &(oViews[i]->data);
-		for (int j = 0; j < numberOfData; j++) {
+		for (int j = 0; j < 1; j++) {
 			cVector3d objPos;
 			cMatrix3d objRot;
 			cVector3d objScale;
-			getObjectData(j, objPos, objRot, objScale);
+			isSuccess = isSuccess && getObjectData(j, objPos, objRot, objScale);
 
 			objects[j]->setLocalPos(objPos);
 			objects[j]->setLocalRot(objRot);
 			//objects[j]->scaleXYZ(objScale.x, objScale.y, objScale.z);
 		}
 	}
+
+	return isSuccess;
 }
 
 bool cBridge::getObjectData(int objNum, cVector3d& pos, cMatrix3d& rot, cVector3d& scale) {
@@ -190,4 +203,53 @@ bool cBridge::getObjectData(int objNum, cVector3d& pos, cMatrix3d& rot, cVector3
 	return true;
 }
 
+string cBridge::getCurrentPosition(int i) {
+	ObjectConfiguration* data = oConfigurations[i];
+	string result;
+
+	if (data != NULL)
+		result = cStr(data->objectPositionX, 3) + ", "
+		+ cStr(data->objectPositionY, 3) + ", "
+		+ cStr(data->objectPositionZ, 3);
+	else
+		result = "Failed to get object configuration";
+
+	return result;
+}
+
+string cBridge::getCurrentRotation(int i) {
+	ObjectConfiguration* data = oConfigurations[i];
+	string result;
+
+	if (data != NULL)
+		result = cStr(data->objectRotationRoll, 3) + ", "
+		+ cStr(data->objectRotationPitch, 3) + ", "
+		+ cStr(data->objectRotationYaw, 3);
+	else
+		result = "Failed to get object configuration";
+
+	return result;
+}
+
+string cBridge::getCurrentScale(int i) {
+	ObjectConfiguration* data = oConfigurations[i];
+	string result;
+
+	if (data != NULL)
+		result = cStr(data->objectScaleX, 3) + ", "
+		+ cStr(data->objectScaleY, 3) + ", "
+		+ cStr(data->objectScaleZ, 3);
+	else
+		result = "Failed to get object configuration";
+
+	return result;
+}
+
+string cBridge::getInformationMessage() {
+	return infoMsg;
+}
+
+string cBridge::getErrorMessage() {
+	return errorMsg;
+}
 }
