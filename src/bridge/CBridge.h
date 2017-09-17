@@ -14,19 +14,34 @@
 using namespace std;
 namespace chai3d {
 
-typedef struct {
+struct InfoView{
 	int sysGran;
 	float HIP[3];
 	int numberOfView;
-	int sizeOfView;
-} InfoView;
+	int viewInformation;
 
-typedef struct {
+	InfoView() {
+		sysGran = 65536;
+		HIP[0] = 0;
+		HIP[1] = 0;
+		HIP[2] = 0;
+		numberOfView = 1;
+		viewInformation = 0;
+	}
+};
+
+struct ObjectView {
 	int numberOfData;
 	float data;
-} ObjectView;
+	
+	ObjectView() {
+		numberOfData = 0;
+		data = 0;
+	}
+} ;
 
-typedef struct {
+struct ObjectConfiguration {
+	int objectTag;
 	float objectPositionX;
 	float objectPositionY;
 	float objectPositionZ;
@@ -36,7 +51,43 @@ typedef struct {
 	float objectScaleX;
 	float objectScaleY;
 	float objectScaleZ;
-} ObjectConfiguration;
+
+	ObjectConfiguration() {
+		objectTag = 0;
+		objectPositionX = 0;
+		objectPositionY = 0;
+		objectPositionZ = 0;
+		objectRotationRoll = 0;
+		objectRotationPitch = 0;
+		objectRotationYaw = 0;
+		objectScaleX = 1;
+		objectScaleY = 1;
+		objectScaleZ = 1;
+	}
+};
+
+struct ObjectEdit {
+	bool command;
+	int objectNumTag;
+	char filename[200];
+
+	ObjectEdit() {
+		command = 0;
+		objectNumTag = 1;
+	}
+};
+
+struct ObjectNumberInView {
+	int objectConfigurationNumber;
+	int verticesNumber;
+	int objectEditNumber;
+
+	ObjectNumberInView () {
+		objectConfigurationNumber = 0;
+		verticesNumber = 0;
+		objectEditNumber = 0;
+	}
+};
 
 class cBridge {
 public:
@@ -56,8 +107,17 @@ public:
 	int numberOfView;
 	int* sizeOfView;
 	ObjectView** oViews;
+//#if TEST
+	ObjectNumberInView** oNumViews;
+	ObjectEdit** oEdits;
+//#endif
 	ObjectConfiguration** oConfigurations;
 	float** oViewData;
+	cVector3d* objectScales;
+
+	map<string, string> filePaths;
+	map<int, cMultiMesh*> objectMap;
+	//vector<int> objectLoadingLists;
 
 	/* Messages */
 	SYSTEM_INFO sysInfo;
@@ -74,18 +134,24 @@ public:
 
 	/* Registering functions */
 	bool registerHapticDevice(cGenericHapticDevicePtr);
-	bool registerObjects(vector<cMultiMesh *>);
+	bool registerObject(int, cMultiMesh*);
+	/*bool registerObjects(int, vector<cMultiMesh *>);
+	vector<cMultiMesh*> getObjects();*/
+	bool updateFileList();
+	bool registerFileInFolder(string);
 
 	/* Functions */
 	bool openFileMapping(LPCSTR s);
 
 	bool mapViewOfFiles();
 
+	bool checkNewModel(string &, int*);
+
 	void sendHIPData(float*);
 	bool uploadHIPData();
 
 	bool updateObject();
-	bool getObjectData(int, cVector3d&, cMatrix3d&, cVector3d&);
+	bool getObjectData(int, int*, cVector3d&, cMatrix3d&, cVector3d&);
 
 	/* Current status functions */
 	string getCurrentPosition(int);
@@ -93,6 +159,11 @@ public:
 	string getCurrentScale(int);
 	string getInformationMessage();
 	string getErrorMessage();
+	void setInfoMsg(string);
+	void setErrorMsg(string);
+
+	/* Model loading thread */
+	//void loadModels(void);
 };
 
 }

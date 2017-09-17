@@ -98,6 +98,8 @@ cGenericHapticDevicePtr hapticDevice;
 
 // a virtual tool representing the haptic device in the scene
 cToolCursor* tool;
+double toolRadius;
+double maxStiffness;
 
 // a colored background
 cBackground* background;
@@ -457,7 +459,7 @@ int main(int argc, char* argv[])
                                    cVector3d(0,0,1),    // zenith direction
                                    cVector3d(0,1,0));   // azimuth direction
 
-    camera->setSphericalDeg(5.0,    // spherical coordinate radius
+    camera->setSphericalDeg(3.0,    // spherical coordinate radius
                             70,     // spherical coordinate polar angle
                             90);    // spherical coordinate azimuth angle
 
@@ -521,7 +523,7 @@ int main(int argc, char* argv[])
     hapticDevice->setEnableGripperUserSwitch(true);
 
     // define the radius of the tool (sphere)
-    double toolRadius = 0.1;
+    toolRadius = 0.1;
 
     // define a radius for the tool
     tool->setRadius(toolRadius);
@@ -556,90 +558,90 @@ int main(int argc, char* argv[])
     double workspaceScaleFactor = tool->getWorkspaceScaleFactor();
 
     // stiffness properties
-    double maxStiffness	= hapticDeviceInfo.m_maxLinearStiffness / workspaceScaleFactor;
+    maxStiffness	= hapticDeviceInfo.m_maxLinearStiffness / workspaceScaleFactor;
 
     // create a virtual mesh
-    object = new cMultiMesh();
-	objects.push_back(object);
+ //   object = new cMultiMesh();
+	//objects.push_back(object);
 
-    // add object to world
-    world->addChild(object);
+ //   // add object to world
+ //   world->addChild(object);
 
-    // load an object file
-    bool fileload;
-    fileload = object->loadFromFile(RESOURCE_PATH("../resources/models/box/box.3ds"));
-    if (!fileload)
-    {
-        #if defined(_MSVC)
-        fileload = object->loadFromFile("../../../bin/resources/models/box/box.3ds");
-        #endif
-    }
-    if (!fileload)
-    {
-        cout << "Error - 3D Model failed to load correctly" << endl;
-        close();
-        return (-1);
-    }
+ //   // load an object file
+ //   bool fileload;
+ //   fileload = object->loadFromFile(RESOURCE_PATH("../resources/models/box/box.3ds"));
+ //   if (!fileload)
+ //   {
+ //       #if defined(_MSVC)
+ //       fileload = object->loadFromFile("../../../bin/resources/models/box/box.3ds");
+ //       #endif
+ //   }
+ //   if (!fileload)
+ //   {
+ //       cout << "Error - 3D Model failed to load correctly" << endl;
+ //       close();
+ //       return (-1);
+ //   }
 
     // disable culling so that faces are rendered on both sides
-    object->setUseCulling(false);
+ //   object->setUseCulling(false);
 
-    // get dimensions of object
-    object->computeBoundaryBox(true);
-    double size = cSub(object->getBoundaryMax(), object->getBoundaryMin()).length();
+ //   // get dimensions of object
+ //   object->computeBoundaryBox(true);
+ //   double size = cSub(object->getBoundaryMax(), object->getBoundaryMin()).length();
 
-	// resize object to screen
-    if (size > 0.001)
-    {
-        object->scale(1 / size);
-    }
-	objScale = 1.2;
-	object->scaleXYZ(1 * objScale, 1 * objScale, 10 * objScale);
+	//// resize object to screen
+ //   if (size > 0.001)
+ //   {
+ //       object->scale(1 / size);
+ //   }
+	//objScale = 1.2;
+	//object->scaleXYZ(1 * objScale, 1 * objScale, 10 * objScale);
 
-     // compute a boundary box
-    object->computeBoundaryBox(true);
+ //    // compute a boundary box
+ //   object->computeBoundaryBox(true);
 
-    // show/hide boundary box
-    object->setShowBoundaryBox(false);
+ //   // show/hide boundary box
+ //   object->setShowBoundaryBox(false);
 
-    // compute collision detection algorithm
-    object->createAABBCollisionDetector(toolRadius);
+ //   // compute collision detection algorithm
+ //   object->createAABBCollisionDetector(toolRadius);
 
-    // define a default stiffness for the object
-    object->setStiffness(0.2 * maxStiffness, true);
+ //   // define a default stiffness for the object
+ //   object->setStiffness(0.2 * maxStiffness, true);
 
-    // define some haptic friction properties
-    object->setFriction(0.1, 0.2, true);
+ //   // define some haptic friction properties
+ //   object->setFriction(0.1, 0.2, true);
 
-    // enable display list for faster graphic rendering
-    object->setUseDisplayList(true);
+ //   // enable display list for faster graphic rendering
+ //   object->setUseDisplayList(true);
 
-    // center object in scene
-    //object->setLocalPos(-1.0 * object->getBoundaryCenter());
-	object->setLocalPos(2, 0, 0);
+ //   // center object in scene
+ //   //object->setLocalPos(-1.0 * object->getBoundaryCenter());
+	//object->setLocalPos(2, 0, 0);
 
-    // rotate object in scene
-    object->rotateExtrinsicEulerAnglesDeg(0, 0, 0, C_EULER_ORDER_XYZ);
+ //   // rotate object in scene
+ //   object->rotateExtrinsicEulerAnglesDeg(0, 0, 0, C_EULER_ORDER_XYZ);
 
-    // compute all edges of object for which adjacent triangles have more than 40 degree angle
-    object->computeAllEdges(40);
+ //   // compute all edges of object for which adjacent triangles have more than 40 degree angle
+ //   object->computeAllEdges(40);
 
-    // set line width of edges and color
-    cColorf colorEdges;
-    colorEdges.setBlack();
-    object->setEdgeProperties(1, colorEdges);
+ //   // set line width of edges and color
+ //   cColorf colorEdges;
+ //   colorEdges.setBlack();
+ //   object->setEdgeProperties(1, colorEdges);
 
-    // set normal properties for display
-    cColorf colorNormals;
-    colorNormals.setOrangeTomato();
-    object->setNormalsProperties(0.01, colorNormals);
+ //   // set normal properties for display
+ //   cColorf colorNormals;
+ //   colorNormals.setOrangeTomato();
+ //   object->setNormalsProperties(0.01, colorNormals);
 
-    // display options
-    object->setShowTriangles(showTriangles);
-    object->setShowEdges(showEdges);
-    object->setShowNormals(showNormals);
+ //   // display options
+ //   object->setShowTriangles(showTriangles);
+ //   object->setShowEdges(showEdges);
+ //   object->setShowNormals(showNormals);
 
-	bridge.registerObjects(objects);
+	//bridge.registerObjects(objects);
 
     //--------------------------------------------------------------------------
     // WIDGETS
@@ -788,43 +790,43 @@ void keyCallback(GLFWwindow* a_window, int a_key, int a_scancode, int a_action, 
     // option - show/hide texture
     else if (a_key == GLFW_KEY_1)
     {
-        bool useTexture = object->getUseTexture();
-        object->setUseTexture(!useTexture);
+        //bool useTexture = object->getUseTexture();
+        //object->setUseTexture(!useTexture);
     }
 
     // option - enable/disable wire mode
     else if (a_key == GLFW_KEY_2)
     {
-        bool useWireMode = object->getWireMode();
-        object->setWireMode(!useWireMode, true);
+        //bool useWireMode = object->getWireMode();
+        //object->setWireMode(!useWireMode, true);
     }
 
     // option - show/hide collision detection tree
     else if (a_key == GLFW_KEY_3)
     {
-        cColorf color = cColorf(1.0, 0.0, 0.0);
-        object->setCollisionDetectorProperties(collisionTreeDisplayLevel, color, true);
-        bool show = object->getShowCollisionDetector();
-        object->setShowCollisionDetector(!show, true);
+        //cColorf color = cColorf(1.0, 0.0, 0.0);
+        //object->setCollisionDetectorProperties(collisionTreeDisplayLevel, color, true);
+        //bool show = object->getShowCollisionDetector();
+        //object->setShowCollisionDetector(!show, true);
     }
 
     // option - decrease depth level of collision tree
     else if (a_key == GLFW_KEY_4)
     {
-        collisionTreeDisplayLevel--;
-        if (collisionTreeDisplayLevel < 0) { collisionTreeDisplayLevel = 0; }
-        cColorf color = cColorf(1.0, 0.0, 0.0);
-        object->setCollisionDetectorProperties(collisionTreeDisplayLevel, color, true);
-        object->setShowCollisionDetector(true, true);
+        //collisionTreeDisplayLevel--;
+        //if (collisionTreeDisplayLevel < 0) { collisionTreeDisplayLevel = 0; }
+        //cColorf color = cColorf(1.0, 0.0, 0.0);
+        //object->setCollisionDetectorProperties(collisionTreeDisplayLevel, color, true);
+        //object->setShowCollisionDetector(true, true);
     }
 
     // option - increase depth level of collision tree
     else if (a_key == GLFW_KEY_5)
     {
-        collisionTreeDisplayLevel++;
-        cColorf color = cColorf(1.0, 0.0, 0.0);
-        object->setCollisionDetectorProperties(collisionTreeDisplayLevel, color, true);
-        object->setShowCollisionDetector(true, true);
+        //collisionTreeDisplayLevel++;
+        //cColorf color = cColorf(1.0, 0.0, 0.0);
+        //object->setCollisionDetectorProperties(collisionTreeDisplayLevel, color, true);
+        //object->setShowCollisionDetector(true, true);
     }
 
     // option - save screenshot to file
@@ -839,22 +841,22 @@ void keyCallback(GLFWwindow* a_window, int a_key, int a_scancode, int a_action, 
     // option - show/hide triangles
     else if (a_key == GLFW_KEY_T)
     {
-        showTriangles = !showTriangles;
-        object->setShowTriangles(showTriangles);
+        //showTriangles = !showTriangles;
+        //object->setShowTriangles(showTriangles);
     }
 
     // option - show/hide edges
     else if (a_key == GLFW_KEY_E)
     {
-        showEdges = !showEdges;
-        object->setShowEdges(showEdges);
+        //showEdges = !showEdges;
+        //object->setShowEdges(showEdges);
     }
 
     // option - show/hide normals
     else if (a_key == GLFW_KEY_N)
     {
-        showNormals = !showNormals;
-        object->setShowNormals(showNormals);
+        //showNormals = !showNormals;
+        //object->setShowNormals(showNormals);
     }
 
     // option - toggle fullscreen
@@ -909,7 +911,7 @@ void close(void)
 
     // delete resources
     delete hapticsThread;
-	delete modelLoadThread;
+	//delete modelLoadThread;
     delete world;
     delete handler;
 }
@@ -1087,12 +1089,12 @@ void updateHaptics(void)
 		// update bridge information
 		bridge.Tick();
 
-		cVector3d objPos;
-		cMatrix3d objRot;
-		cVector3d objScale;
-		bridge.getObjectData(0, objPos, objRot, objScale);
-		object->setLocalPos(objPos);
-		object->setLocalRot(objRot);
+		//cVector3d objPos;
+		//cMatrix3d objRot;
+		//cVector3d objScale;
+		//bridge.getObjectData(0, objPos, objRot, objScale);
+		//object->setLocalPos(objPos);
+		//object->setLocalRot(objRot);
 
 		// read position 
 		cVector3d position;
@@ -1105,8 +1107,97 @@ void updateHaptics(void)
     simulationFinished = true;
 }
 
+/* Model loading thread */
 void loadModels(void) {
-	
+	bool modelLoading = true;
+
+	while (simulationRunning) {
+		int objectNumber = -1;
+		string path = "";
+		//printf("hi");
+		if (bridge.checkNewModel(path, &objectNumber)) {
+			bool fileload;
+			cMultiMesh* newObject = new cMultiMesh();
+			
+			fileload = newObject->loadFromFile(RESOURCE_PATH(path));
+			if (!fileload)
+			{
+#if defined(_MSVC)
+				fileload = newObject->loadFromFile(path);
+#endif
+			}
+			if (!fileload)
+			{
+				cout << "Error - 3D Model failed to load correctly" << endl;
+				close();
+			}
+
+			// disable culling so that faces are rendered on both sides
+			newObject->setUseCulling(false);
+
+			// get dimensions of object
+			newObject->computeBoundaryBox(true);
+			double size = cSub(newObject->getBoundaryMax(), newObject->getBoundaryMin()).length();
+
+			// resize object to screen
+			if (size > 0.001)
+			{
+				newObject->scale(1 / size);
+			}
+
+			// compute a boundary box
+			newObject->computeBoundaryBox(true);
+
+			// show/hide boundary box
+			newObject->setShowBoundaryBox(false);
+
+			// compute collision detection algorithm
+			newObject->createAABBCollisionDetector(toolRadius);
+
+			// define a default stiffness for the object
+			newObject->setStiffness(0.2 * maxStiffness, true);
+
+			// define some haptic friction properties
+			newObject->setFriction(0.1, 0.2, true);
+
+			// enable display list for faster graphic rendering
+			newObject->setUseDisplayList(true);
+
+			// center object in scene
+			//object->setLocalPos(-1.0 * object->getBoundaryCenter());
+			newObject->setLocalPos(2, 0, 0);
+
+			// rotate object in scene
+			newObject->rotateExtrinsicEulerAnglesDeg(0, 0, 0, C_EULER_ORDER_XYZ);
+
+			// compute all edges of object for which adjacent triangles have more than 40 degree angle
+			newObject->computeAllEdges(50);
+
+			// set line width of edges and color
+			cColorf colorEdges;
+			colorEdges.setBlack();
+			newObject->setEdgeProperties(1, colorEdges);
+
+			// set normal properties for display
+			cColorf colorNormals;
+			colorNormals.setOrangeTomato();
+			newObject->setNormalsProperties(0.01, colorNormals);
+
+			// display options
+			newObject->setShowTriangles(showTriangles);
+			newObject->setShowEdges(showEdges);
+			newObject->setShowNormals(showNormals);
+
+
+			// register
+			//vector<cMultiMesh*> objects = bridge.getObjects();
+			//objects.push_back(newObject);
+			bridge.registerObject(objectNumber, newObject);
+			//bridge.objectMap[]
+
+			world->addChild(newObject);
+		}
+	}
 }
 
 //------------------------------------------------------------------------------
