@@ -1,3 +1,8 @@
+To use CHAI3D with Unreal Engine, we added a bridge part.
+
+Below messages are original CHAI3D readme.txt.
+
+----------------------------------
 
 
 CHAI3D - The Open Source Haptic Framework
